@@ -32,14 +32,15 @@ def reward_function(params):
     if abs(angle) <=2:
         angle = 0
     angle *=1.5
-    if abs(angle) >30:
-        optimal_speed=1.5
+    if abs(angle) >45:
+        optimal_speed=1.2
     else:
-        optimal_speed = 12*(1/(3+10*abs(math.sin(abs(angle)))))
-    steering_reward = 32/(1+abs(params['steering_angle']-angle)**2)
+        optimal_speed = 5*math.tanh(8/(1+abs(angle)))
+    optimal_speed = max(optimal_speed,1.2)
+    steering_reward = 50/(1+abs(params['steering_angle']-angle)**2)
     if params['steps'] > 0:
         progress_reward =(params['progress'])/(params['steps']*10)
-        speed_penalty = (4 - abs(params['speed']- optimal_speed))
+        speed_penalty = (5 - abs(params['speed']- optimal_speed))
         reward += speed_penalty**2
         reward += progress_reward
     else:
