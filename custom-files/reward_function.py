@@ -13,6 +13,7 @@ def reward_function(params):
     next_point_3 = waypoints[(closest_waypoints[1]+2+waypoints_length)%waypoints_length]
     next_point_4 = waypoints[(closest_waypoints[1]+3+waypoints_length)%waypoints_length]
     prev_point = waypoints[closest_waypoints[0]]
+    prev_point_2 = waypoints[(closest_waypoints[1]-1)%waypoints_length]
 
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
     track_direction = math.atan2(next_point_1[1] - prev_point[1], next_point_1[0] - prev_point[0])
@@ -27,31 +28,32 @@ def reward_function(params):
     # Penalize the reward if the difference is too large
     angle1 = abs(math.degrees(math.atan2(next_point_2[1]-next_point_1[1],next_point_2[0]-next_point_1[0])))
     angle2 = abs(math.degrees(math.atan2(next_point_4[1]-next_point_3[1],next_point_4[0]-next_point_3[0])))
+    angle0 = abs(math.degrees(math.atan2(prev_point[1]-prev_point_2[1],prev_point[0]-prev_point_2[0])))
     reward = 1e-9
     angle = angle2 - angle1
-    if abs(angle) <=2:
-        angle = 0
-    angle *=1.5
-    if abs(angle) >45:
+    angle_b = angle1 - angle0
+    total_angle = angle- angle_b
+    if abs(total_angle) > 30:
         optimal_speed=1.2
     else:
-        optimal_speed = 5*math.tanh(8/(1+abs(angle)))
+        optimal_speed = 5*math.tanh(8/(1+abs(total_angle)))
     optimal_speed = max(optimal_speed,1.2)
-    steering_reward = 50/(1+abs(params['steering_angle']-angle)**2)
+    steering_reward = 64/(1+abs(params['steering_angle']-total_angle)**2)
     if params['steps'] > 0:
         progress_reward =(params['progress'])/(params['steps']*10)
         speed_penalty = (5 - abs(params['speed']- optimal_speed))
         reward += speed_penalty**2
         reward += progress_reward
+        reward += params['progress']/50
     else:
         return 1e-9
     reward=reward+steering_reward
     DIRECTION_THRESHOLD = 10.0
-    if direction_diff > DIRECTION_THRESHOLD:
-        reward *= 0.5
-    if not params['all_wheels_on_track']:
-        if params['is_left_of_center'] and params['steering_angle'] >0:
-            reward*=0.1
-        if not params['is_left_of_center'] and params['steering_angle'] <0:
-            reward*=0.1
+    if direction_diff <= DIRECTION_THRESHOLD:
+        reward += 8.0
+#    if not params['all_wheels_on_track']:
+#        if params['is_left_of_center'] and params['steering_angle'] >0:
+#            reward*=0.1
+#        if not params['is_left_of_center'] and params['steering_angle'] <0:
+#            reward*=0.1
     return float(reward)
