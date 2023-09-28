@@ -1,36 +1,29 @@
-
 import math
+
+def angle_between_lines(x1, y1, x2, y2, x3, y3):
+    dx1 = x2 - x1
+    dy1 = y2 - y1
+    dx2 = x3 - x2
+    dy2 = y3 - y2
+    angle = math.atan2(dy2, dx2) - math.atan2(dy1, dx1)
+    return math.degrees(angle)
 def reward_function(params):
-
-    # Reward weights
-    speed_weight = 100
-    heading_weight = 100
-    steering_weight = 50
-    progress_weight = 17
-
-    # Initialize the reward based on current speed
-    max_speed_reward = 5 * 5
-    min_speed_reward = 1.3 * 1.3
-    abs_speed_reward = params['speed'] * params['speed']
-    speed_reward = (abs_speed_reward - min_speed_reward) / (max_speed_reward - min_speed_reward) * speed_weight
-    heading_reward = 0.0
-    progress_reward = 0.0
-    # - - - - - 
-    if params['steps']>0:
-        progress_reward = (params['progress']/(params['steps']*progress_weight))**2
-    # Penalize if the car goes off track
-    if  params['is_crashed'] or params['is_offtrack']:
-        return -20.0
-    
-    # - - - - - 
-    
+    if params['is_offtrack'] or params['is_crashed']:
+        return 1e-9
+    waypoints = params['waypoints']
+    closest_waypoints = params['closest_waypoints']
+    heading = params['heading']
     # Calculate the direction of the center line based on the closest waypoints
-    next_point = params['waypoints'][params['closest_waypoints'][1]]
-    prev_point = params['waypoints'][params['closest_waypoints'][0]]
-    
+    waypoints_length= len(waypoints)
+    next_point_1 = waypoints[closest_waypoints[1]]
+    next_point_2 = waypoints[(closest_waypoints[1]+1)%waypoints_length]
+    next_point_3 = waypoints[(closest_waypoints[1]+2)%waypoints_length]
+    next_point_4 = waypoints[(closest_waypoints[1]+3)%waypoints_length]
+    prev_point_1 = waypoints[closest_waypoints[0]]
+    prev_point_2 = waypoints[(closest_waypoints[0]-1+waypoints_length)%waypoints_length]
+
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
-    track_direction = math.atan2(next_point[1] - prev_point[1], next_point[0] - prev_point[0]) 
-    
+    track_direction = math.atan2(next_point_1[1] - prev_point_1[1], next_point_1[0] - prev_point_1[0])
     # Convert to degree
     track_direction = math.degrees(track_direction)
 
@@ -38,24 +31,40 @@ def reward_function(params):
     direction_diff = abs(track_direction - params['heading'])
     if direction_diff > 180:
         direction_diff = 360 - direction_diff
+
+    # Penalize the reward if the difference is too large
+    angle_f= angle_between_lines(prev_point_1[0],prev_point_1[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
+    angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point_1[0],prev_point_1[1],next_point_1[0],next_point_1[1])
+    reward = 1e-9
+    total_angle = angle_f- angle_b
+    if abs(total_angle) > 30:
+        optimal_speed= 1.2
     else:
-        abs_heading_reward = 1 - (direction_diff / 180.0)
-        heading_reward = abs_heading_reward * heading_weight
-    
-    # - - - - -
-    
-    # Reward if steering angle is aligned with direction difference
-    if params['steering_angle'] - direction_diff > 7:
-        steering_reward = 1e-3
+        optimal_speed = 5*math.tanh(6/(1+abs(total_angle)))
+    optimal_speed = max(optimal_speed,1.2)
+    steering_reward =0
+    if abs(total_angle-params['steering_angle'])<=5:
+        steering_reward+=800
+    elif abs(total_angle-params['steering_angle'])<=10:
+        steering_reward+=400
+    elif abs(total_angle-params['steering_angle'])<=15:
+        steering_reward+=100
+    elif abs(total_angle-params['steering_angle'])<=20:
+        steering_reward+=50
+    if params['steps'] > 0:
+        progress_reward =(200*params['progress'])/(params['steps'])
+        speed_penalty = (5 - abs(params['speed']- optimal_speed))
+        reward += speed_penalty**3
+        reward += progress_reward
     else:
-        abs_steering_reward = 1 - (abs(params['steering_angle'] - direction_diff) / 180.0)
-        steering_reward = abs_steering_reward * steering_weight
-
-    # - - - - -
-    # Penalize if slow speed action space
-    if params['speed'] > 2.0:
-        return speed_reward*2
-
-
-    
-    return speed_reward + heading_reward + steering_reward + progress_reward
+        return 1e-9
+    reward=reward+ steering_reward
+    DIRECTION_THRESHOLD = 10.0
+    if direction_diff <= DIRECTION_THRESHOLD:
+        reward += 100
+#    if not params['all_wheels_on_track']:
+#        if params['is_left_of_center'] and params['steering_angle'] >0:
+#            reward*=0.1
+#        if not params['is_left_of_center'] and params['steering_angle'] <0:
+#            reward*=0.1
+    return float(reward)
