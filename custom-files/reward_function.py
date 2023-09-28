@@ -1,8 +1,8 @@
 import math
 
 def angle_between_lines(x1, y1, x2, y2, x3, y3):
-    dx1 = x2 - x1
-    dy1 = y2 - y1
+    dx1 = x1 - x2
+    dy1 = y1 - y2
     dx2 = x3 - x2
     dy2 = y3 - y2
     angle = math.atan2(dy2, dx2) - math.atan2(dy1, dx1)
@@ -17,8 +17,6 @@ def reward_function(params):
     waypoints_length= len(waypoints)
     next_point_1 = waypoints[closest_waypoints[1]]
     next_point_2 = waypoints[(closest_waypoints[1]+1)%waypoints_length]
-    next_point_3 = waypoints[(closest_waypoints[1]+2)%waypoints_length]
-    next_point_4 = waypoints[(closest_waypoints[1]+3)%waypoints_length]
     prev_point_1 = waypoints[closest_waypoints[0]]
     prev_point_2 = waypoints[(closest_waypoints[0]-1+waypoints_length)%waypoints_length]
 
@@ -40,17 +38,17 @@ def reward_function(params):
     if abs(total_angle) > 30:
         optimal_speed= 1.2
     else:
-        optimal_speed = 5*math.tanh(6/(1+abs(total_angle)))
+        optimal_speed = 5*math.tanh(8/(1+abs(total_angle)))
     optimal_speed = max(optimal_speed,1.2)
     steering_reward =0
     if abs(total_angle-params['steering_angle'])<=5:
-        steering_reward+=800
-    elif abs(total_angle-params['steering_angle'])<=10:
         steering_reward+=400
+    elif abs(total_angle-params['steering_angle'])<=10:
+        steering_reward+=200
     elif abs(total_angle-params['steering_angle'])<=15:
-        steering_reward+=100
-    elif abs(total_angle-params['steering_angle'])<=20:
         steering_reward+=50
+    elif abs(total_angle-params['steering_angle'])<=20:
+        steering_reward+=10
     if params['steps'] > 0:
         progress_reward =(200*params['progress'])/(params['steps'])
         speed_penalty = (5 - abs(params['speed']- optimal_speed))
