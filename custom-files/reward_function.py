@@ -1,10 +1,10 @@
 import math
 
-def angle_between_lines(x1, y1, x2, y2, x3, y3):
-    dx1 = x1 - x2
-    dy1 = y1 - y2
-    dx2 = x3 - x2
-    dy2 = y3 - y2
+def angle_between_lines(x1, y1, x2, y2, x3, y3, x4, y4):
+    dx1 = x2 - x1
+    dy1 = y2 - y1
+    dx2 = x4 - x3
+    dy2 = y4 - y3
     angle = math.atan2(dy2, dx2) - math.atan2(dy1, dx1)
     return math.degrees(angle)
 def reward_function(params):
@@ -17,11 +17,13 @@ def reward_function(params):
     waypoints_length= len(waypoints)
     next_point_1 = waypoints[closest_waypoints[1]]
     next_point_2 = waypoints[(closest_waypoints[1]+1)%waypoints_length]
-    prev_point_1 = waypoints[closest_waypoints[0]]
+    next_point_3 = waypoints[(closest_waypoints[1]+2+waypoints_length)%waypoints_length]
+    next_point_4 = waypoints[(closest_waypoints[1]+3+waypoints_length)%waypoints_length]
+    prev_point = waypoints[closest_waypoints[0]]
     prev_point_2 = waypoints[(closest_waypoints[0]-1+waypoints_length)%waypoints_length]
 
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
-    track_direction = math.atan2(next_point_1[1] - prev_point_1[1], next_point_1[0] - prev_point_1[0])
+    track_direction = math.atan2(next_point_1[1] - prev_point[1], next_point_1[0] - prev_point[0])
     # Convert to degree
     track_direction = math.degrees(track_direction)
 
@@ -31,35 +33,31 @@ def reward_function(params):
         direction_diff = 360 - direction_diff
 
     # Penalize the reward if the difference is too large
-    angle_f= angle_between_lines(prev_point_1[0],prev_point_1[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
-    angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point_1[0],prev_point_1[1],next_point_1[0],next_point_1[1])
+    angle_f= angle_between_lines(next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1],next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1])
+    angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
     reward = 1e-9
-    total_angle = angle_f- angle_b
-    if abs(total_angle) > 30:
-        optimal_speed= 1.2
-    else:
-        optimal_speed = 5*math.tanh(8/(1+abs(total_angle)))
+    total_angle = (angle_f+angle_b)/2
+    if total_angle >90:
+        total_angle-=180
+    elif total_angle <-90:
+        total_angle+=180
+    optimal_speed = 5*math.tanh(8/(1+abs(total_angle)))
     optimal_speed = max(optimal_speed,1.2)
     steering_reward =0
-    if abs(total_angle-params['steering_angle'])<=5:
-        steering_reward+=400
-    elif abs(total_angle-params['steering_angle'])<=10:
-        steering_reward+=200
-    elif abs(total_angle-params['steering_angle'])<=15:
-        steering_reward+=50
-    elif abs(total_angle-params['steering_angle'])<=20:
-        steering_reward+=10
+    if abs(total_angle-params['steering_angle'])<=2 or (abs(params['steering_angle'])>25 and abs(total_angle)>30 and total_angle*params['steering_angle']>0):
+        steering_reward +=100
     if params['steps'] > 0:
-        progress_reward =(200*params['progress'])/(params['steps'])
+        progress_reward =(params['progress'])/(params['steps']*10)
         speed_penalty = (5 - abs(params['speed']- optimal_speed))
         reward += speed_penalty**3
         reward += progress_reward
+        reward += params['progress']/50
     else:
         return 1e-9
     reward=reward+ steering_reward
     DIRECTION_THRESHOLD = 10.0
     if direction_diff <= DIRECTION_THRESHOLD:
-        reward += 100
+        reward += 8.0
 #    if not params['all_wheels_on_track']:
 #        if params['is_left_of_center'] and params['steering_angle'] >0:
 #            reward*=0.1
