@@ -45,13 +45,11 @@ def reward_function(params):
     if abs(total_angle) >30 and abs(params['steering_angle'])>25 and total_angle*params['steering_angle']>=0:
         steering_reward=100
     if params['steps'] > 0:
-        progress_reward =(5*params['progress'])/(params['steps'])+ params['progress']//4
+        progress_reward =(params['progress'])/(params['steps'])+ params['progress']//4
         reward += progress_reward
-        reward += params['speed']**3
     else:
         return 1e-9
     reward=reward+ steering_reward
-    DIRECTION_THRESHOLD = 10.0
-    if direction_diff <= DIRECTION_THRESHOLD:
-        reward +=10.0
+    if direction_diff <=10.0:
+        reward+=10.0
     return float(reward)
