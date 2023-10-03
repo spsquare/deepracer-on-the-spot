@@ -1,10 +1,10 @@
 import math
 
-def angle_between_lines(x1, y1, x2, y2, x3, y3, x4, y4):
+def angle_between_lines(x1, y1, x2, y2, x3, y3):
     dx1 = x2 - x1
     dy1 = y2 - y1
-    dx2 = x4 - x3
-    dy2 = y4 - y3
+    dx2 = x3 - x2
+    dy2 = y3 - y2
     angle = math.atan2(dy2, dx2) - math.atan2(dy1, dx1)
     return math.degrees(angle)
 def reward_function(params):
@@ -41,20 +41,20 @@ def reward_function(params):
         total_angle-=180
     elif total_angle <-90:
         total_angle+=180
-    if abs(total_angle)<=8:
+    if abs(total_angle)<=4:
         total_angle=0
+    if abs(total_angle)>12:
+        total_angle*=1.5
     steering_reward = 100/(1+abs(params['steering_angle']-total_angle))
-    if abs(total_angle) >30 and abs(params['steering_angle'])>25 and total_angle*params['steering_angle']>=0:
-        steering_reward=100
     if params['steps'] > 0:
-        progress_reward =(params['progress'])/(params['steps'])+ params['progress']//4
+        progress_reward =(1.25*params['progress'])/(params['steps'])+ params['progress']//4
         reward += progress_reward
     else:
         return 1e-9
     reward=reward+ steering_reward
     if direction_diff <=10.0:
         reward+=10.0
-    if abs(total_angle)<=8:
+    if abs(total_angle)<=4:
         if params['speed'] >=3:
             reward+=30
         if params['speed'] >=3.4:
@@ -68,7 +68,5 @@ def reward_function(params):
         if params['speed'] >=4.4:
             reward+=50
     else:
-        opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
-        opt_speed=max(1.2,opt_speed)
-        reward+=(5-abs(params['speed']-opt_speed))**2
+        reward += params['speed']**2.5
     return float(reward)
