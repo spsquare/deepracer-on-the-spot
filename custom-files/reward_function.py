@@ -1,61 +1,77 @@
 import math
+
+def angle_between_lines(x1, y1, x2, y2, x3, y3, x4, y4):
+    dx1 = x2 - x1
+    dy1 = y2 - y1
+    dx2 = x4 - x3
+    dy2 = y4 - y3
+    angle = math.atan2(dy2, dx2) - math.atan2(dy1, dx1)
+    return math.degrees(angle)
 def reward_function(params):
     if params['is_offtrack'] or params['is_crashed']:
-        return 1e-9;
+        return 1e-9
     waypoints = params['waypoints']
-    closest_waypoints = params['closest_waypoints'];
-    cwi = closest_waypoints[1];
-    degrees = [];
-    for i in range(0,6):
-        nxt = waypoints[(cwi+i)%len(waypoints)];
-        prev = waypoints[(len(waypoints)+cwi+i-1)%len(waypoints)];
-        if(nxt[1]==prev[1] and nxt[0]==prev[0]):
-            continue;
-        angle = math.atan2(nxt[1]-prev[1],nxt[0]-prev[0]);
-        degrees.append(math.degrees(angle));
-    maxdiff = 0.0;
-    max_steering_diff = degrees[1]-degrees[0];
-    index = 0;
-    for i in range(1,len(degrees)):
-        diff = abs(degrees[i]-degrees[0]);
-        if(diff>180):
-            diff = 360-diff;
-        if(diff>maxdiff):
-            maxdiff = max(abs(diff),maxdiff);
-            index = i;
-    maxdiff = maxdiff/index;
-    k = max_steering_diff;
-    if(max_steering_diff>180):
-        max_steering_diff = max_steering_diff-360;
-    elif(max_steering_diff<180):
-        max_steering_diff = max_steering_diff+360;
+    closest_waypoints = params['closest_waypoints']
+    heading = params['heading']
+    # Calculate the direction of the center line based on the closest waypoints
+    waypoints_length= len(waypoints)
+    next_point_1 = waypoints[closest_waypoints[1]]
+    next_point_2 = waypoints[(closest_waypoints[1]+1)%waypoints_length]
+    next_point_3 = waypoints[(closest_waypoints[1]+2+waypoints_length)%waypoints_length]
+    next_point_4 = waypoints[(closest_waypoints[1]+3+waypoints_length)%waypoints_length]
+    prev_point = waypoints[closest_waypoints[0]]
+    prev_point_2 = waypoints[(closest_waypoints[0]-1+waypoints_length)%waypoints_length]
 
+    # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
+    track_direction = math.atan2(next_point_1[1] - prev_point[1], next_point_1[0] - prev_point[0])
+    # Convert to degree
+    track_direction = math.degrees(track_direction)
 
-    abs_speed = min(4.0,round(get_abs_speed(maxdiff),1));
-    if(maxdiff<5):
-        abs_speed = 4;
-    steering_speed = min(4.0,round(get_abs_speed(abs(max_steering_diff)),1));
-    if(abs(max_steering_diff)<5):
-        steering_speed = 4;
+    # Calculate the difference between the track direction and the heading direction of the car
+    direction_diff = abs(track_direction - params['heading'])
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
 
-    speed_diff = abs(params['speed']-min(abs_speed,steering_speed));
-
-    reward =  200/(1+50*speed_diff);
-
-
-    direction_diff = abs(k-params['steering_angle']);
-    if(direction_diff>180):
-        direction_diff = 360-direction_diff;
-    reward = reward * (300/(50*direction_diff+1));
-
-    return float(progress_reward(params)*reward);
-
-
-def progress_reward(params):
-    progress = params['progress']
-    steps = params['steps']+1
-    reward = (progress)/(100*steps)
-    return 1+reward;
-
-def get_abs_speed(diff):
-    return max(1.3,54/(12+abs(diff)));
+    # Penalize the reward if the difference is too large
+    angle_f= angle_between_lines(next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1],next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1])
+    angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
+    reward = 1e-9
+    total_angle = (angle_f+angle_b)/2
+    if prev_point_2==prev_point or prev_point==next_point_1 or next_point_1==next_point_2 or next_point_2== next_point_3 or next_point_3==next_point_4:
+        total_angle = 0
+    if total_angle >90:
+        total_angle-=180
+    elif total_angle <-90:
+        total_angle+=180
+    if abs(total_angle)<15:
+        total_angle=0
+    steering_reward = 100/(1+abs(params['steering_angle']-total_angle))
+    if abs(total_angle) >30 and abs(params['steering_angle'])>25 and total_angle*params['steering_angle']>=0:
+        steering_reward=100
+    if params['steps'] > 0:
+        progress_reward =(1.25*params['progress'])/(params['steps'])+ params['progress']//4
+        reward += progress_reward
+    else:
+        return 1e-9
+    reward=reward+ steering_reward
+    if direction_diff <=10.0:
+        reward+=10.0
+    if abs(total_angle)<15:
+        reward+= params['speed']**2.5
+        if params['speed'] >=3:
+            reward+=30
+        if params['speed'] >=3.4:
+            reward+=30
+        if params['speed'] >=3.8:
+            reward+=30
+        if params['speed'] >=4:
+            reward+=30
+        if params['speed'] >=4.2:
+            reward+=30
+        if params['speed'] >=4.4:
+            reward+=50
+    else:
+        opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
+        opt_speed=max(1.2,opt_speed)
+        reward+=(5-abs(params['speed']-opt_speed))**2.5
+    return float(reward)
