@@ -50,12 +50,14 @@ def reward_function(params):
     prev_wp = waypoints[closest_waypoints[0]];
     if(prev_wp[0]==next_wp[0] and prev_wp[1]==next_wp[1]):
         prev_wp = waypoints[(len_wp+closest_waypoints[0]-1)%len_wp];
-    prev_angle = math.degrees(math.atan2(next_wp[1]-prev_wp[1],next_wp[0]-prev_wp[0]));
+    angle = math.degrees(math.atan2(next_wp[1]-prev_wp[1],next_wp[0]-prev_wp[0]));
     heading = params['heading']
-    heading_diff = abs(prev_angle-heading-params['steering_angle']);
+    
+    heading_diff = abs(angle-heading-req_steer);
     if(heading_diff>180):
-        heading_diff = 360-heading_diff;
-    reward*= 10/(1+5*(heading_diff//3));
+        heading_diff = 360 - heading_diff;
+    
+    reward*= 10/(1+5*heading_diff);
     return float(progress_reward(params)*reward);
 
 
