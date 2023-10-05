@@ -45,7 +45,7 @@ def reward_function(params):
     print("Speed Diff : {}, Direction Diff : {}".format(speed_diff,direction_diff))
     if(params['steering_angle']*req_steer <0):
         reward*= 5/(1+5*(direction_diff))
-    elif(params['steering_angle']<req_steer-2 and params['steering_angle']>req_steer+2):
+    elif(params['steering_angle']<req_steer-2 or params['steering_angle']>req_steer+2):
         reward*= 50/(10+5*(direction_diff))
     else:
         reward*= 50/(10+(direction_diff//2))
