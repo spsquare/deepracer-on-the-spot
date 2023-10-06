@@ -42,15 +42,14 @@ def reward_function(params):
     if(direction_diff>180):
         direction_diff = 360-direction_diff;
     
-    print("Speed Diff : {}, Direction Diff : {}".format(speed_diff,direction_diff))
+    
     if(params['steering_angle']*req_steer <0):
         reward*= 5/(1+5*(direction_diff))
     elif(params['steering_angle']<req_steer-2 or params['steering_angle']>req_steer+2):
         reward*= 50/(10+5*(direction_diff))
     else:
-        reward*= 50/(10+(direction_diff//2))
+        reward*= 50/(10+(direction_diff))
     len_wp = len(waypoints);
-    heading = params['heading']
     next_wp = waypoints[closest_waypoints[1]];
     prev_wp = waypoints[closest_waypoints[0]];
     if(prev_wp[0]==next_wp[0] and prev_wp[1]==next_wp[1]):
@@ -60,7 +59,8 @@ def reward_function(params):
     heading_diff = abs(prev_angle-heading-req_steer);
     if(heading_diff>180):
         heading_diff = 360-heading_diff;
-    reward*= 10/(1+5*(heading_diff));
+    reward*= 100/(10+5*(heading_diff));
+    print("Speed Diff : {}, Direction Diff : {}, Heading diff : {}, Req Steering : {}".format(speed_diff,direction_diff,heading_diff, req_steer))
     return float(progress_reward(params)*reward);
 
 
@@ -72,4 +72,7 @@ def progress_reward(params):
 
 
 def get_abs_speed(diff):
-    return min(4,54/(12+diff));
+    d = diff
+    if(diff<5):
+        d = 0
+    return 60/(15+d)
