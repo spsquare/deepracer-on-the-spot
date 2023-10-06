@@ -40,7 +40,7 @@ def reward_function(params):
     if abs(total_angle) >30 and abs(params['steering_angle'])>25 and total_angle*params['steering_angle']>=0:
         steering_reward=1000
     if params['steps'] > 0:
-        progress_reward = 500*((10*params['progress'])/(params['steps']))**2
+        progress_reward = 1000*((5*params['progress'])/(params['steps']))**2
     else:
         return 1e-9
     reward=reward+ steering_reward+progress_reward
