@@ -36,11 +36,13 @@ def reward_function(params):
     angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
     reward = 1e-9
     total_angle = (angle_f+angle_b)/2
+    if prev_point_2==prev_point or prev_point==next_point_1 or next_point_1==next_point_2 or next_point_2==next_point_3 or next_point_3==next_point_4:
+        total_angle =0
     if total_angle >90:
         total_angle-=180
     elif total_angle <-90:
         total_angle+=180
-    if abs(total_angle)<=5:
+    if abs(total_angle)<=4:
         total_angle=0
     total_angle =total_angle*0.75
     steering_reward = 100/(1+abs(params['steering_angle']-total_angle))
@@ -52,7 +54,7 @@ def reward_function(params):
     reward=reward+ steering_reward
     if direction_diff <=10.0:
         reward+=10.0
-    if abs(total_angle)<=5:
+    if abs(total_angle)<=4:
         if params['speed'] >=3:
             reward+=30
         if params['speed'] >=3.4:
