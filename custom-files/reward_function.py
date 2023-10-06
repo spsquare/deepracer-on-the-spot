@@ -47,7 +47,7 @@ def reward_function(params):
 
     opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
     opt_speed=max(1.2,opt_speed)
-    reward+=50*(5-abs(params['speed']-opt_speed))**2
+    reward+=5*(5-abs(params['speed']-opt_speed))**2
     if abs(total_angle)<=12 and abs(params['steering_angle'])>=25:
         reward*=0.25
     return float(reward)
