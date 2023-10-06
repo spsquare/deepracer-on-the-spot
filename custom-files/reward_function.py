@@ -61,7 +61,7 @@ def reward_function(params):
         count+=1;
     desired_speed = get_abs_speed(abs(max_diff));
     safe_speed = round(desired_speed + index*((4-desired_speed)/count),1);
-    req_speed = min(desired_speed,avg_speed);
+    req_speed = min(safe_speed,avg_speed);
     
     
     nxt_angle = gen_angle(waypoints[(cwj+1)%len_wp],waypoints[cwj]);
