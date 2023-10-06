@@ -70,5 +70,5 @@ def reward_function(params):
     else:
         opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
         opt_speed=max(1.2,opt_speed)
-        reward+=(5-abs(params['speed']-opt_speed))**2
+        reward+=(5-abs(params['speed']-opt_speed))**2.5
     return float(reward)
