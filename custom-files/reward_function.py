@@ -31,7 +31,7 @@ def reward_function(params):
         total_angle-=180
     elif total_angle <-90:
         total_angle+=180
-    if all(prev_point_2 == prev_point) or all(prev_point==next_point_1) or all(next_point_1==next_point_2) or all(next_point_2==next_point_3) or all(next_point_3==next_point_4):
+    if int(closest_waypoints[0])==1 or int(closest_waypoints[1])==1 or int((closest_waypoints[0]-1+waypoints_length)%waypoints_length) ==1 or int((closest_waypoints[1]+1)%waypoints_length) ==1 or  int((closest_waypoints[1]+2)%waypoints_length) ==1 or  int((closest_waypoints[1]+3)%waypoints_length) ==1:
         total_angle =0
     if abs(total_angle)<=8:
         total_angle= 0
