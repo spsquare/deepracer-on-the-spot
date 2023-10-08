@@ -44,7 +44,7 @@ def reward_function(params):
         total_angle=0
     if int(closest_waypoints[0])==1 or int(closest_waypoints[1])==1 or int((closest_waypoints[0]-1+waypoints_length)%waypoints_length) ==1 or int((closest_waypoints[1]+1)%waypoints_length) ==1 or  int((closest_waypoints[1]+2)%waypoints_length) ==1 or  int((closest_waypoints[1]+3)%waypoints_length) ==1:
         total_angle =0
-    steering_reward = 100/(1+abs(params['steering_angle']-total_angle))
+    steering_reward = 100/(1+1.5*abs(params['steering_angle']-total_angle))
     if abs(total_angle) >30 and abs(params['steering_angle'])>25 and total_angle*params['steering_angle']>=0:
         steering_reward=100
     if params['steps'] > 0:
@@ -71,7 +71,7 @@ def reward_function(params):
     else:
         opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
         opt_speed=max(1.2,opt_speed)
-        reward+=(5-abs(params['speed']-opt_speed))**2
+        reward+=(5-abs(params['speed']-opt_speed))**2.2
     if abs(total_angle)<=12 and abs(params['steering_angle'])>=25:
         reward*=0.25
     return float(reward)
