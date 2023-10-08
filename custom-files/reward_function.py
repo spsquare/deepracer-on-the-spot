@@ -1,77 +1,90 @@
-import math;
+import math
 
-
-def get_diff(angle1,angle2):
-    diff = angle1-angle2;
-    if(diff>180):
-        diff-=360;
-    elif(diff<-180):
-        diff+=360;
-    return diff;
-
-def gen_angle(nxt,prev):
-    return math.degrees(math.atan2(nxt[1]-prev[1],nxt[0]-prev[0]));
-
-def progress_reward(params):
-    progress = params['progress']
-    steps = params['steps']+1
-    reward = (progress)/(100*steps)
-    return 1+reward;
-
-def get_abs_speed(diff):
-    d = diff
-    return max(1.3,round(40/(d+10),1));
-
+def angle_between_lines(x1, y1, x2, y2, x3, y3, x4, y4):
+    dx1 = x2 - x1
+    dy1 = y2 - y1
+    dx2 = x4 - x3
+    dy2 = y4 - y3
+    angle = math.atan2(dy2, dx2) - math.atan2(dy1, dx1)
+    deg= math.degrees(angle)
+    if deg>180:
+        deg=deg-360
+    if deg <-180:
+        deg= deg+360
+    return deg
 def reward_function(params):
-    waypoints = params['waypoints'];
-    start = int(params['closest_waypoints'][0]);
-    end = int(params['closest_waypoints'][1]);
-    len_wp = len(waypoints);
-    while(waypoints[start%len_wp][0]==waypoints[end%len_wp][0] and waypoints[start%len_wp][1]==waypoints[end%len_wp][1]):
-        end+=1;
-        end = end%len_wp;
-    
-    curr_angle = gen_angle(waypoints[(end+len_wp)%len_wp],waypoints[(start+len_wp)%len_wp]);
-    angles = [];
-    angles.append(curr_angle);
-    max_angle = 0;
-    count = 0;
-    index = end;
+    if params['is_offtrack'] or params['is_crashed']:
+        return 1e-9
+    waypoints = params['waypoints']
+    closest_waypoints = params['closest_waypoints']
+    # Calculate the direction of the center line based on the closest waypoints
+    waypoints_length= len(waypoints)
+    prev = int(closest_waypoints[0])
+    next = int(closest_waypoints[1])
+    next_point_1 = waypoints[next]
+    next_point_2 = waypoints[(next+1)%waypoints_length]
+    next_point_3 = waypoints[(next+2)%waypoints_length]
+    next_point_4 = waypoints[(next+3)%waypoints_length]
+    next_point_5 = waypoints[(next+4)%waypoints_length]
+    next_point_6 = waypoints[(next+5)%waypoints_length]
+    next_point_7 = waypoints[(next+6)%waypoints_length]
+    next_point_8 = waypoints[(next+7)%waypoints_length]
+    prev_point = waypoints[prev]
+    prev_point_2 = waypoints[(prev-1+waypoints_length)%waypoints_length]
 
-    nxt = waypoints[(end+1+len_wp)%len_wp];
-    prev = waypoints[(start+len_wp)%len_wp]
-    prev_angle = gen_angle(nxt,prev);
-    nxt = waypoints[(end+len_wp)%len_wp];
-    prev = waypoints[(start-1+len_wp)%len_wp]
-    new_angle = gen_angle(nxt,prev);
-    alt_speed = round(get_abs_speed(abs(get_diff(new_angle,prev_angle))),1);    
-    for k in range(end,end+6):
-        nxt = waypoints[(len_wp+k)%len_wp];
-        prev = waypoints[(len_wp+k-1)%len_wp];
-        if(nxt[1]==prev[1] and nxt[0]==prev[0]):
-            continue;
-        angle = gen_angle(waypoints[(len_wp+k)%len_wp],waypoints[(len_wp+k-1)%len_wp]);
-        diff = get_diff(angle,curr_angle);
-        angles.append(angle);
+    # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
+    track_direction = math.atan2(next_point_1[1] - prev_point[1], next_point_1[0] - prev_point[0])
+    # Convert to degree
+    track_direction = math.degrees(track_direction)
 
-        if(abs(diff)>abs(max_angle)):
-            max_angle = diff;
-            index = k-end;
-        count+=1;
+    # Calculate the difference between the track direction and the heading direction of the car
+    direction_diff = abs(track_direction - params['heading'])
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
 
-    future_speed = round(get_abs_speed(abs(max_angle/(index+1))),1);
-
-    alt_speed_1 = future_speed;
-    req_steer = round(get_diff(angles[2],curr_angle));
-    req_speed = min(alt_speed_1,alt_speed)
-    
-    curr_speed = params['speed'];
-    curr_steer = params['steering_angle'];
-    curr_heading = params['heading'];
-    
-    speed_reward = 50/(1+10*abs(curr_speed-req_speed));
-    steer_reward = 10/(1+abs(curr_steer-req_steer));
-    heading_reward = 10/(1+abs(round(get_diff(curr_angle,curr_heading))));
-    
-    
-    return float(speed_reward*steer_reward*heading_reward*progress_reward(params));
+    # Penalize the reward if the difference is too large
+    angle_f= angle_between_lines(next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1],next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1])
+    angle_f2= angle_between_lines(next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1],next_point_5[0],next_point_5[1],next_point_6[0],next_point_6[1])
+    angle_f3= angle_between_lines(next_point_5[0],next_point_5[1],next_point_6[0],next_point_6[1],next_point_7[0],next_point_7[1],next_point_8[0],next_point_8[1])
+    angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
+    reward = 1e-9
+    total_angle = (angle_f+angle_b+angle_f2+angle_f3)/4
+    if total_angle >90:
+        total_angle-=180
+    elif total_angle <-90:
+        total_angle+=180
+    if abs(total_angle)<=7:
+        total_angle=0
+    if next ==1 or prev==1 or (next+1)%waypoints_length ==1 or (next+2)%waypoints_length ==1 or (next+3)%waypoints_length ==1 or (next+4)%waypoints_length ==1 or (next+5)%waypoints_length ==1 or (next+6)%waypoints_length ==1 or (next+7)%waypoints_length ==1 or (prev -1 +waypoints_length)%waypoints_length ==1:
+        total_angle =0
+    steering_reward = 100/(1+abs(params['steering_angle']-total_angle))
+    if abs(total_angle) >30 and abs(params['steering_angle'])>25 and total_angle*params['steering_angle']>=0:
+        steering_reward=100
+    if params['steps'] > 0:
+        progress_reward =(params['progress'])/(params['steps'])+ params['progress']//2
+        reward += progress_reward
+    else:
+        return 1e-9
+    reward=reward+ steering_reward
+    if direction_diff <=10.0:
+        reward+=10.0
+    if abs(total_angle)<=7:
+        if params['speed'] >=3:
+            reward+=30
+        if params['speed'] >=3.4:
+            reward+=30
+        if params['speed'] >=3.8:
+            reward+=30
+        if params['speed'] >=4:
+            reward+=30
+        if params['speed'] >=4.2:
+            reward+=30
+        if params['speed'] >=4.4:
+            reward+=50
+    else:
+        opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
+        opt_speed=max(1.2,opt_speed)
+        reward+=(5-abs(params['speed']-opt_speed))**2
+    if abs(params['steering_angle']-total_angle) >=10:
+        reward*=0.25
+    return float(reward)
