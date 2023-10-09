@@ -87,4 +87,12 @@ def reward_function(params):
         reward+=(5-abs(params['speed']-opt_speed))**2
     if abs(params['steering_angle']-total_angle) >=10:
         reward*=0.25
+    if total_angle>15 and not params['is_left_of_center']:
+        reward+=100
+    if total_angle<-15 and params['is_left_of_center']:
+        reward+=100
+    if abs(total_angle)<=7 and abs(params['steering_angle'])>20:
+        reward=1e-3
+    if abs(total_angle)>20 and abs(params['steering_angle'])<12:
+        reward=1e-3
     return float(reward)
