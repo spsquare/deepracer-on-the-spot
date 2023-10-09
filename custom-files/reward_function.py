@@ -35,9 +35,7 @@ def reward_function(params):
     track_direction = math.atan2(next_point_1[1] - prev_point[1], next_point_1[0] - prev_point[0])
     # Convert to degree
     track_direction = math.degrees(track_direction)
-    straight_points = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,158,159,160,161,162,163,164,165,166,167,168,169,170,171,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,181,182,183,184]
-    easy_curve_left = [20,21,22,23,24,25,44,45,46,47,48,49,50,67,68,69,70,71,72,73,74,75,76,77,78,79,87,88,89,90,91,92,93,153,154,155,172,173,174,175,176,189,190,191,192,193]
-    easy_curve_right = [56,57,58,59,60,61,62,199,200,201,202]
+
     # Calculate the difference between the track direction and the heading direction of the car
     direction_diff = abs(track_direction - params['heading'])
     if direction_diff > 180:
@@ -80,8 +78,14 @@ def reward_function(params):
         return 1e-3
     if abs(params['steering_angle'])>=25 and abs(total_angle)>=25 and total_angle*params['steering_angle']>=0:
         reward+=100.0
-    if (total_angle <=22 and total_angle>5) and params['is_left_of_center']:
-        reward+=1000
-    if (total_angle >=-22 and total_angle<-5) and not params['is_left_of_center']:
-        reward+=1000    
+    if (total_angle <=22 and total_angle>5):
+        if params['is_left_of_center']:
+            reward+=1000
+        if abs(steering_angle-total_angle)<=5:
+            reward+=50
+    if (total_angle >=-22 and total_angle<-5):
+        if not params['is_left_of_center']:
+            reward+=1000
+        if abs(steering_angle-total_angle)<=5:
+            reward+=50
     return float(reward)
