@@ -53,7 +53,7 @@ def reward_function(params):
         total_angle-=180
     elif total_angle <-90:
         total_angle+=180
-    if abs(total_angle)<=7:
+    if abs(total_angle)<=5:
         total_angle=0
     if next ==1 or prev==1 or (next+1)%waypoints_length ==1 or (next+2)%waypoints_length ==1 or (next+3)%waypoints_length ==1 or (next+4)%waypoints_length ==1 or (next+5)%waypoints_length ==1 or (next+6)%waypoints_length ==1 or (next+7)%waypoints_length ==1 or (prev -1 +waypoints_length)%waypoints_length ==1:
         total_angle =0
@@ -68,7 +68,7 @@ def reward_function(params):
     reward=reward+ steering_reward
     if direction_diff <=10.0:
         reward+=10.0
-    if abs(total_angle)<=7:
+    if abs(total_angle)<=5:
         if params['speed'] >=3:
             reward+=30
         if params['speed'] >=3.4:
