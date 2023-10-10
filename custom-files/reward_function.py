@@ -15,7 +15,7 @@ def gen_angle(nxt,prev):
 def progress_reward(params):
     progress = params['progress']
     steps = params['steps']+1
-    reward = (progress)/(100*steps)
+    reward = (progress)/(10*steps)
     return 1+reward;
 
 def get_abs_speed(diff):
@@ -70,12 +70,12 @@ def reward_function(params):
     curr_steer = params['steering_angle'];
     curr_heading = params['heading'];
     
-    speed_reward = 50/(1+10*abs(curr_speed-req_speed));
-    steer_reward = 50/(1+abs(curr_steer-req_steer));
-    heading_reward = 50/(1+abs(round(get_diff(curr_angle,curr_heading))));
+    speed_reward = 5/(1+10*abs(curr_speed-req_speed));
+    steer_reward = 5/(1+abs(curr_steer-req_steer));
+    heading_reward = 5/(1+abs(round(get_diff(curr_angle,curr_heading))));
     
     
-    reward = float(speed_reward+steer_reward+heading_reward+progress_reward(params));
+    reward = float(speed_reward*steer_reward*heading_reward*progress_reward(params));
     
     
     
