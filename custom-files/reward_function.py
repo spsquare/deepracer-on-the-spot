@@ -90,9 +90,9 @@ def reward_function(params):
     if abs(params['steering_angle'])<10 and abs(total_angle)>20:
         return 1e-3
     if total_angle >10 and params['is_left_of_center']:
-        reward+=100.0
+        reward+=150.0/(1+10*abs(params['distance_from_center']-abs(total_angle)*params['track_width']/60)/params['track_width'])
     if total_angle < -10 and not params['is_left_of_center']:
-        reward+=100.0
+        reward+=150.0/(1+10*abs(params['distance_from_center']-abs(total_angle)*params['track_width']/60)/params['track_width'])
     if abs(params['steering_angle'])>=25 and abs(total_angle)>=25 and total_angle*params['steering_angle']>=0:
         reward+=100.0
     if abs(params['steering_angle'])>7 and abs(total_angle)<9 and total_angle*params['steering_angle']>=0:
