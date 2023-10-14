@@ -58,10 +58,10 @@ def reward_function(params):
     window = 2;
     prev_total = 0;
     for k in range(window,len(angles)):
-        total=total+(get_diff(angles[k],angles[k-window])/k);
+        total=total+(get_diff(angles[k],angles[k-window])/(k-1));
 
     for k in range(window,len(prev_angles)):
-        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/k);
+        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/(k-1));
 
     if(abs(total)>30):
         if(total>0):
