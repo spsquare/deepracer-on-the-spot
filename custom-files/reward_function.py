@@ -92,19 +92,6 @@ def reward_function(params):
             re_speed+=10;
         if(cs>4.0):
             re_speed+=40;
-
-        re_distance = 0;
-        if(distance_from_center<0.5*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.4*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.3*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.2*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.1*track_width):
-            re_distance+=10;
-        reward+=re_distance;
         
         re_heading = 100/(1+abs(curr-params['heading']));
         reward+=re_heading;
@@ -112,23 +99,25 @@ def reward_function(params):
         re_speed = 100/(1+speed_diff);
         if(req_steer*steering<0):
             return 1e-9;
+        flag = False;
         if(req_steer<0 and not left_of_center):
-            re_steer+=10;
+            re_steer+=50;
+            flag = True;
         elif(req_steer>0 and left_of_center):
-            re_steer+=10;
+            re_steer+=50;
+            flag = True;
         re_distance = 0;
-        marker_1 = track_width/2;
-        if(abs(req_steer)<20):
-            marker_1 = track_width/3;
-        if(abs(req_steer)<15):
-            marker_1 = track_width/4;
-        if(abs(req_steer)<10):
-            marker_1 = track_width/6;
-        if(abs(req_steer)<5):
-            marker_1 = track_width/8;
-        
-        
-        re_distance = 300/(1+10*(abs(distance_from_center-marker_1)/marker_1))
+        if(flag):
+            marker_1 = 0.45*track_width;
+            if(abs(req_steer)<20):
+                marker_1 = track_width/3;
+            if(abs(req_steer)<15):
+                marker_1 = track_width/4;
+            if(abs(req_steer)<10):
+                marker_1 = track_width/6;
+            if(abs(req_steer)<5):
+                marker_1 = track_width/8;
+            re_distance = 300/(1+10*(abs(distance_from_center-marker_1)/(0.5*track_width)))
         reward+=re_distance;
         
     
