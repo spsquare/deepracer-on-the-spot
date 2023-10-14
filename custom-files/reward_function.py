@@ -27,6 +27,8 @@ def reward_function(params):
     next_point_4 = waypoints[(next+3)%waypoints_length]
     next_point_5 = waypoints[(next+4)%waypoints_length]
     next_point_6 = waypoints[(next+5)%waypoints_length]
+    next_point_7 = waypoints[(next+6)%waypoints_length]
+    next_point_8 = waypoints[(next+7)%waypoints_length]
     prev_point = waypoints[prev]
     prev_point_2 = waypoints[(prev-1+waypoints_length)%waypoints_length]
 
@@ -43,23 +45,60 @@ def reward_function(params):
     # Penalize the reward if the difference is too large
     angle_f= angle_between_lines(next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1],next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1])
     angle_f2= angle_between_lines(next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1],next_point_5[0],next_point_5[1],next_point_6[0],next_point_6[1])
+    angle_f3= angle_between_lines(next_point_5[0],next_point_5[1],next_point_6[0],next_point_6[1],next_point_7[0],next_point_7[1],next_point_8[0],next_point_8[1])
     angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
     reward = 1e-9
-    total_angle = (angle_f+angle_b+angle_f2)/3
+    total_angle = (angle_f+angle_b+angle_f2+angle_f3)/4
     if total_angle >90:
         total_angle-=180
     elif total_angle <-90:
         total_angle+=180
     if next ==1 or prev==1 or (next+1)%waypoints_length ==1 or (next+2)%waypoints_length ==1 or (next+3)%waypoints_length ==1 or (next+4)%waypoints_length ==1 or (next+5)%waypoints_length ==1 or (next+6)%waypoints_length ==1 or (next+7)%waypoints_length ==1 or (prev -1 +waypoints_length)%waypoints_length ==1:
         total_angle =0
-    if abs(total_angle)<=15:
+    if abs(total_angle)<10:
         reward = params['speed']
+        total_angle = 0
     elif total_angle >0 and params['is_left_of_center']:
         if abs(total_angle)>22 and params['speed']>=2:
             return 0.001
-        reward = 4/(1+5*abs(params['distance_from_center']-abs(total_angle)*params['track_width']/60)/params['track_width'])
+        if params['distance_from_center'] >=0.45*params['track_width']:
+            reward=4
+        if params['distance_from_center'] >=0.4*params['track_width']:
+            reward=3.5
+        elif params['distance_from_center'] >=0.35*params['track_width']:
+            reward=3
+        elif params['distance_from_center'] >=0.3*params['track_width']:
+            reward=2.5
+        elif params['distance_from_center'] >=0.25*params['track_width']:
+            reward=2
+        elif params['distance_from_center'] >=0.2*params['track_width']:
+            reward=1.5
+        elif params['distance_from_center'] >=0.15*params['track_width']:
+            reward=1
+        elif params['distance_from_center'] >=0.1*params['track_width']:
+            reward=0.5
+        else:
+            reward =0.25
     elif total_angle<0 and not params['is_left_of_center']:
         if abs(total_angle)>22 and params['speed']>=2:
             return 0.001
-        reward = 4/(1+5*abs(params['distance_from_center']-abs(total_angle)*params['track_width']/60)/params['track_width'])
+        if params['distance_from_center'] >=0.45*params['track_width']:
+            reward=4
+        if params['distance_from_center'] >=0.4*params['track_width']:
+            reward=3.5
+        elif params['distance_from_center'] >=0.35*params['track_width']:
+            reward=3
+        elif params['distance_from_center'] >=0.3*params['track_width']:
+            reward=2.5
+        elif params['distance_from_center'] >=0.25*params['track_width']:
+            reward=2
+        elif params['distance_from_center'] >=0.2*params['track_width']:
+            reward=1.5
+        elif params['distance_from_center'] >=0.15*params['track_width']:
+            reward=1
+        elif params['distance_from_center'] >=0.1*params['track_width']:
+            reward=0.5
+        else:
+            reward =0.25
+    reward+= 1/(1+abs(params['steering_angle']-total_angle))
     return float(reward)
