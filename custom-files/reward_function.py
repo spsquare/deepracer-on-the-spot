@@ -100,5 +100,7 @@ def reward_function(params):
             reward=0.5
         else:
             reward =0.25
-    reward+= 1/(1+abs(params['steering_angle']-total_angle))
+    reward+= 1/(1+0.25*abs(params['steering_angle']-total_angle))
+    if params['steps']>0:
+        reward+=4*params['progress']/params['steps']
     return float(reward)
