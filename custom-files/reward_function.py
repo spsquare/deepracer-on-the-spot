@@ -14,9 +14,9 @@ def gen_angle(nxt,prev):
     return deg
 
 def get_abs_speed(diff):
-    if(diff<6):
+    if(diff<10):
         return 4;
-    return max(1.3, 4*math.cos(math.pi*diff/70))
+    return max(1.3, 40/diff)
 
 def progress_reward_func(params):
     progress = params['progress']
@@ -58,10 +58,10 @@ def reward_function(params):
     window = 2;
     prev_total = 0;
     for k in range(window,len(angles)):
-        total=total+(get_diff(angles[k],angles[k-window])/(k-1));
+        total=total+(get_diff(angles[k],angles[k-window])/k);
 
     for k in range(window,len(prev_angles)):
-        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/(k-1));
+        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/k);
 
     if(abs(total)>30):
         if(total>0):
@@ -92,6 +92,19 @@ def reward_function(params):
             re_speed+=10;
         if(cs>4.0):
             re_speed+=40;
+
+        re_distance = 0;
+        if(distance_from_center<0.5*track_width):
+            re_distance+=10;
+        if(distance_from_center<0.4*track_width):
+            re_distance+=10;
+        if(distance_from_center<0.3*track_width):
+            re_distance+=10;
+        if(distance_from_center<0.2*track_width):
+            re_distance+=10;
+        if(distance_from_center<0.1*track_width):
+            re_distance+=10;
+        reward+=re_distance;
         
         re_heading = 100/(1+abs(curr-params['heading']));
         reward+=re_heading;
@@ -99,26 +112,10 @@ def reward_function(params):
         re_speed = 100/(1+speed_diff);
         if(req_steer*steering<0):
             return 1e-9;
-        flag = False;
         if(req_steer<0 and not left_of_center):
-            re_steer+=50;
-            flag = True;
+            re_steer+=40;
         elif(req_steer>0 and left_of_center):
-            re_steer+=50;
-            flag = True;
-        re_distance = 0;
-        if(flag):
-            marker_1 = 0.45*track_width;
-            if(abs(req_steer)<20):
-                marker_1 = track_width/3;
-            if(abs(req_steer)<15):
-                marker_1 = track_width/4;
-            if(abs(req_steer)<10):
-                marker_1 = track_width/6;
-            if(abs(req_steer)<5):
-                marker_1 = track_width/8;
-            re_distance = 300/(1+10*(abs(distance_from_center-marker_1)/(0.5*track_width)))
-        reward+=re_distance;
+            re_steer+=40;
         
     
     reward+= re_speed + re_steer + progress_reward_func(params);
