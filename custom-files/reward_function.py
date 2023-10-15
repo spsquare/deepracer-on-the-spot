@@ -37,7 +37,7 @@ def reward_function(params):
     track_width = params['track_width'];
     distance_from_center = params['distance_from_center']
     len_wp = len(waypoints);
-    curr = gen_angle(waypoints[end%len_wp],waypoints[(start-1+len_wp)%len_wp])
+    curr = gen_angle(waypoints[end%len_wp],waypoints[(start+len_wp)%len_wp])
 
     angles = []
     for k in range(end+1,end+2):
