@@ -22,7 +22,7 @@ def progress_reward_func(params):
     progress = params['progress']
     steps = params['steps']+1
     reward = (progress)/(steps)
-    return 1+reward;
+    return reward;
     
     
 def reward_function(params):
@@ -40,14 +40,14 @@ def reward_function(params):
     curr = gen_angle(waypoints[end%len_wp],waypoints[(start-1+len_wp)%len_wp])
 
     angles = []
-    for k in range(end+1,end+4):
+    for k in range(end+1,end+2):
         nxt = waypoints[k%len_wp];
         prev = waypoints[(k-1+len_wp)%len_wp];
         if(nxt[1]==prev[1] and nxt[0]==prev[0]):
             continue;
         angles.append(gen_angle(nxt,prev));
     prev_angles = [];
-    for k in range(start-4,start-1):
+    for k in range(start-2,start-1):
         nxt = waypoints[(k+len_wp)%len_wp];
         prev = waypoints[(k-1+len_wp)%len_wp];
         if(nxt[1]==prev[1] and nxt[0]==prev[0]):
@@ -55,31 +55,21 @@ def reward_function(params):
         prev_angles.append(gen_angle(nxt,prev));
     prev_angles.append(curr);
     total = 0;
-    window = 2;
+    window = 1;
     prev_total = 0;
     for k in range(window,len(angles)):
         total=total+(get_diff(angles[k],angles[k-window])/k);
 
     for k in range(window,len(prev_angles)):
-        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/k);
+        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/(len(prev_angles)-k));
 
-    if(abs(total)>30):
-        if(total>0):
-            total = 30
-        else:
-            total = -30;
-    if(abs(prev_total)>30):
-        if(prev_total>0):
-            prev_total = 30
-        else:
-            prev_total = -30;
     req_steer = round((total+prev_total)/2)
     req_speed = round(get_abs_speed(abs(req_steer)),1);
-    reward = 0;
     speed_diff = abs(cs-req_speed);
-    re_speed = 100/(1+10*speed_diff);
-    re_steer = 100/(1+10*abs(steering-req_steer));
-    if(abs(req_steer)<6):
+    if(abs(req_steer)<10):
+        reward = 0;
+        re_speed = 100/(1+10*speed_diff);
+        re_steer = 100/(1+10*abs(steering-req_steer));
         if(cs>3.0):
             re_speed+=10;
         if(cs>3.2):
@@ -106,17 +96,22 @@ def reward_function(params):
             re_distance+=10;
         reward+=re_distance;
         
-        re_heading = 100/(1+abs(curr-params['heading']));
-        reward+=re_heading;
+
+        reward+=re_speed;
+        reward+=re_steer;
+        return reward;
     else:
-        re_speed = 100/(1+speed_diff);
+        reward = 0;
+        re_speed = 50/(1+10*speed_diff);
+        re_steer = 50/(1+10*abs(steering-req_steer));
         if(req_steer*steering<0):
             return 1e-9;
+        
         if(req_steer<0 and not left_of_center):
             re_steer+=40;
         elif(req_steer>0 and left_of_center):
             re_steer+=40;
-        
+        re_heading = 50/(1+10*abs(curr-params['heading']));
     
-    reward+= re_speed + re_steer + progress_reward_func(params);
-    return reward;
+        reward+=re_heading+ re_speed + re_steer + progress_reward_func(params);
+        return reward;
