@@ -22,9 +22,10 @@ def reward_function(params):
 
     # Calculate the direction of the center line based on the closest waypoints
     waypoints_length= len(waypoints)
+    track_length= len(track)
     prev = int(closest_waypoints[0])
     next = int(closest_waypoints[1])
-    next_point = track[next]
+    next_point = track[next%track_length]
     distance_to_next_waypoint = math.sqrt((x - next_point[0])**2 + (y - next_point[1])**2)
     next_point_1 = waypoints[next]
     next_point_2 = waypoints[(next+1)%waypoints_length]
