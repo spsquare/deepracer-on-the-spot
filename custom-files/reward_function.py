@@ -14,12 +14,14 @@ def gen_angle(nxt,prev):
     return deg
 
 def get_abs_speed(diff):
-    if(diff<10):
+    if(diff<=5):
         return 4;
-    return max(1.3, 40/diff)
+    if(diff<=15):
+        return 200/(35+3*diff);
+    return max(1.4,43/(diff+2));
 
 def progress_reward_func(params):
-    progress = params['progress']
+    progress = params['progress']+1
     steps = params['steps']+1
     reward = (progress)/(steps)
     return reward;
@@ -29,89 +31,96 @@ def reward_function(params):
     if params['is_offtrack'] or params['is_crashed']:
         return 1e-9
     waypoints = params['waypoints'];
-    left_of_center = params['is_left_of_center'];
+    is_left_of_center = params['is_left_of_center'];
     start = int(params['closest_waypoints'][0]);
+    track_width = params['track_width'];
     end = int(params['closest_waypoints'][1]);
     cs = params['speed'];
     steering = params['steering_angle'];
-    track_width = params['track_width'];
     distance_from_center = params['distance_from_center']
     len_wp = len(waypoints);
-    curr = gen_angle(waypoints[end%len_wp],waypoints[(start+len_wp)%len_wp])
-
-    angles = []
-    for k in range(end+1,end+2):
-        nxt = waypoints[k%len_wp];
-        prev = waypoints[(k-1+len_wp)%len_wp];
-        if(nxt[1]==prev[1] and nxt[0]==prev[0]):
-            continue;
-        angles.append(gen_angle(nxt,prev));
-    prev_angles = [];
-    for k in range(start-2,start-1):
-        nxt = waypoints[(k+len_wp)%len_wp];
-        prev = waypoints[(k-1+len_wp)%len_wp];
-        if(nxt[1]==prev[1] and nxt[0]==prev[0]):
-            continue;
-        prev_angles.append(gen_angle(nxt,prev));
-    prev_angles.append(curr);
-    total = 0;
-    window = 1;
-    prev_total = 0;
-    for k in range(window,len(angles)):
-        total=total+(get_diff(angles[k],angles[k-window])/k);
-
-    for k in range(window,len(prev_angles)):
-        prev_total=prev_total+(get_diff(prev_angles[k],prev_angles[k-window])/(len(prev_angles)-k));
-
-    req_steer = round((total+prev_total)/2)
-    req_speed = round(get_abs_speed(abs(req_steer)),1);
-    speed_diff = abs(cs-req_speed);
-    if(abs(req_steer)<10):
-        reward = 0;
-        re_speed = 100/(1+10*speed_diff);
-        re_steer = 100/(1+10*abs(steering-req_steer));
-        if(cs>3.0):
-            re_speed+=10;
-        if(cs>3.2):
-            re_speed+=10;
-        if(cs>3.4):
-            re_speed+=10;
-        if(cs>3.6):
-            re_speed+=10;
-        if(cs>3.8):
-            re_speed+=10;
-        if(cs>4.0):
-            re_speed+=40;
-
-        re_distance = 0;
-        if(distance_from_center<0.5*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.4*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.3*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.2*track_width):
-            re_distance+=10;
-        if(distance_from_center<0.1*track_width):
-            re_distance+=10;
-        reward+=re_distance;
-        
-
-        reward+=re_speed;
-        reward+=re_steer;
-        return reward;
-    else:
-        reward = 0;
-        re_speed = 50/(1+10*speed_diff);
-        re_steer = 50/(1+10*abs(steering-req_steer));
-        if(req_steer*steering<0):
-            return 1e-9;
-        
-        if(req_steer<0 and not left_of_center):
-            re_steer+=40;
-        elif(req_steer>0 and left_of_center):
-            re_steer+=40;
-        re_heading = 50/(1+10*abs(curr-params['heading']));
     
-        reward+=re_heading+ re_speed + re_steer + progress_reward_func(params);
-        return reward;
+    curr = gen_angle(waypoints[end%len_wp],waypoints[start%len_wp])
+
+    angles = [];
+    angles.append(curr);
+    for k in range(end+1,end+4):
+        angle = gen_angle(waypoints[(k)%len_wp],waypoints[(k-1)%len_wp])
+        if(angle==0):
+            continue;
+        angles.append(angle);
+    angle = 0;
+    for k in range(1,len(angles)):
+        angle+=get_diff(angles[k],angles[k-1])/k
+    alt_steer = round(angle);
+    angles = [];
+    angles.append(curr);
+    for k in range(start-1,start-4):
+        angle = gen_angle(waypoints[(k+1)%len_wp],waypoints[(k)%len_wp])
+        if(angle==0):
+            continue;
+        angles.append(angle);
+    angle = 0;
+    for k in range(1,len(angles)):
+        angle+=get_diff(angles[k],angles[k-1])/k;
+    if(abs(angle)>abs(alt_steer)):
+        alt_steer = angle;
+    if(alt_steer>30):
+        alt_steer = 30;
+    elif(alt_steer<-30):
+        alt_steer = -30;
+    req_steer = alt_steer;
+    req_speed = round(get_abs_speed(abs(req_steer)),1);
+    reward = 1;
+    
+    if(req_steer*steering<0):
+        return 1e-9;
+    steer_diff = abs(req_steer-steering);
+    re_steer = 100/(1+steer_diff);
+    if(steer_diff<5):
+        re_steer+=20;
+    if(steer_diff<4):
+        re_steer+=20;
+    if(steer_diff<3):
+        re_steer+=20;
+    if(steer_diff<2):
+        re_steer+=20;
+    if(steer_diff<1):
+        re_steer+=20;
+    
+    speed_diff = 10*abs(cs-req_speed);
+    
+    re_speed = 50/(1+speed_diff);
+    if(speed_diff<5):
+        re_speed+=20;
+    if(speed_diff<4):
+        re_speed+=20;
+    if(speed_diff<3):
+        re_speed+=20;
+    if(speed_diff<2):
+        re_speed+=20;
+    if(speed_diff<1):
+        re_speed+=20;
+        
+    if(abs(req_steer)<=5):
+        data = 2*distance_from_center/track_width
+        if(data<0.5):
+            reward+=10;
+        if(data<0.4):
+            reward+=10;
+        if(data<0.3):
+            reward+=10;
+        if(data<0.2):
+            reward+=10;
+        dir_diff = abs(curr-params['heading']);
+        if(dir_diff>180):
+            dir_diff = 360-dir_diff;
+        reward+= 50/(1+10*dir_diff);    
+    else:
+        if(req_steer<0 and not is_left_of_center):
+            reward+=30;
+        if(req_steer>0 and is_left_of_center):
+            reward+=30;
+    reward+=re_speed+re_steer+progress_reward_func(params);
+    
+    return reward;
