@@ -63,18 +63,12 @@ def reward_function(params):
     angle = 0;
     for k in range(1,len(angles)):
         angle+=get_diff(angles[k],angles[k-1])/k;
-    if(abs(angle)>abs(alt_steer)):
-        alt_steer = angle;
-    if(alt_steer>30):
-        alt_steer = 30;
-    elif(alt_steer<-30):
-        alt_steer = -30;
-    req_steer = alt_steer;
+    
+    req_steer = (alt_steer+angle);
     req_speed = round(get_abs_speed(abs(req_steer)),1);
     reward = 1;
     
-    if(req_steer*steering<0):
-        return 1e-9;
+    
     steer_diff = abs(req_steer-steering);
     re_steer = 100/(1+steer_diff);
     if(steer_diff<5):
