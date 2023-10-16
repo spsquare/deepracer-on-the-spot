@@ -47,8 +47,10 @@ def reward_function(params):
         total_angle=0
     distance_to_next_waypoint = math.sqrt((x - next_point[0])**2 + (y - next_point[1])**2)
     reward_dis = 100/(1+100*distance_to_next_waypoint)
-    opt_speed = 4*math.cos(math.pi*abs(total_angle/60))
+    opt_speed = 4*math.cos(math.pi*abs(total_angle/80))
     opt_speed= min(1.4,opt_speed)
+    if abs(total_angle)>=30:
+        opt_speed=1.4
     reward_speed = 50/(1+10*abs(opt_speed-params['speed']))
 
     return float(reward_dis+reward_speed+params['progress'])
