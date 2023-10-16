@@ -26,10 +26,29 @@ def reward_function(params):
     prev = int(closest_waypoints[0])
     next = int(closest_waypoints[1])
     next_point = track[next%track_length]
+    next_point_1 = waypoints[next]
+    next_point_2 = waypoints[(next+1)%waypoints_length]
+    next_point_3 = waypoints[(next+2)%waypoints_length]
+    next_point_4 = waypoints[(next+3)%waypoints_length]
+    next_point_5 = waypoints[(next+4)%waypoints_length]
+    next_point_6 = waypoints[(next+5)%waypoints_length]
+    prev_point = waypoints[prev]
+    prev_point_2 = waypoints[(prev-1+waypoints_length)%waypoints_length]
+
+    angle_f= angle_between_lines(next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1],next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1])
+    angle_f2= angle_between_lines(next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1],next_point_5[0],next_point_5[1],next_point_6[0],next_point_6[1])
+    angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
+    total_angle = (angle_f+angle_b+angle_f2)/3
+    if total_angle >90:
+        total_angle-=180
+    elif total_angle <-90:
+        total_angle+=180
+    if abs(total_angle)<=5:
+        total_angle=0
     distance_to_next_waypoint = math.sqrt((x - next_point[0])**2 + (y - next_point[1])**2)
     reward_dis = 100/(1+100*distance_to_next_waypoint)
-    opt_speed = 4*math.cos(math.pi*abs(params['steering_angle']/60))
+    opt_speed = 4*math.cos(math.pi*abs(total_angle/60))
     opt_speed= min(1.4,opt_speed)
-    reward_speed = 30/(1+10*abs(opt_speed-params['speed']))
+    reward_speed = 50/(1+10*abs(opt_speed-params['speed']))
 
     return float(reward_dis+reward_speed+params['progress'])
