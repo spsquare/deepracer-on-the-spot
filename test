@@ -1,3 +1,13 @@
+Summary:
+Over the past year, I actively contributed to various components, including Typologies, Matching Engine, and Reconciliation Reports, which have significantly advanced our team's and the company's goals. In Typologies, I addressed defects, enhancements, and took responsibility for managing the typology library, resolving production issues with minimal impact, and optimizing DOB and location mismatch logic. In the Matching Engine, I developed a Custom Scoring algorithm, introduced features like out-of-order shingles and consistent scoring for Chinese names, and made enhancements to the lucene-searcher component. Additionally, I worked on the lucene-indexer component to index new watchlists. In the Reconciliation Reports, I participated in design discussions, established database connections, and worked on both the front-end and back-end of the UI component.
+
+Furthermore, I proactively engaged in discussions to enhance our product's efficiency. For Searcher 2.0, I initiated a fool-proof search engine to address alert configuration issues, presenting the prototype to higher management. In Custom Scoring and ACL enhancements, I proposed a graph-based algorithm to pick the best name and deployed features like out-of-order shingles and word type-specific scoring. I collaborated with the business team to implement ACL logic for nationality fields. In Reconciliation Report enhancements, I improved the comparison data analysis, implemented automations, and facilitated data extraction for better matching.
+
+Lastly, I actively participated in DEI initiatives by engaging in events like the AWS Deepracer competition, where I stood among the top participants and gained valuable insights into machine learning. I also participated in the SEP-a-thon hackathon, building a prototype for tracking micro service calls. Additionally, I contributed to mentoring SEPs of the 2023 batch by providing knowledge transfer sessions on various components, further supporting our company's growth and development.
+
+
+
+
 
 Section 1: Deliver the goals of your team, business/ function and the company
 
