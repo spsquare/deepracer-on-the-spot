@@ -28,3 +28,5 @@ Solutions as such which are already existing in the market comes with a high lic
  
  
 Note: The solution is already under performance testing within the CLS space, Payments Tech CIB.
+Project Description:
+The project aims to address limitations in Information Retrieval (IR) systems by allowing users to configure retrieval rules (Typologies) and evaluate matches based on defined features (Match Context). This reduces false positives, enhances flexibility, and makes the system pluggable with existing components. By employing bipartite graph matching, it offers configurable search architecture, unlike traditional systems, at a lower cost. Tested within the CLS space, Payments Tech CIB, it promises improved operability and cost-effectiveness compared to existing solutions.
