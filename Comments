@@ -1,0 +1,3 @@
+Developed UI automation scripts using Selenium to streamline testing of the Deluxe UI.
+Evaluated the use of Sauce Labs for Jules integration through a proof-of-concept (POC). While Sauce Labs demonstrated functionality as expected in UAT, it is not suitable for production use.
+Proactively explored alternative solutions: Identified Jules headless mode as a viable option for production-ready integration with the automation scripts.
