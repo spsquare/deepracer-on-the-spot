@@ -1,2 +1,1 @@
-Performed thorough component and contract testing following SAML API modifications in the Deluxe application. This initiative ensures the application's functionality remains intact after the API changes, minimizing risks and maintaining application stability.
-Expanded knowledge and understanding of contract and component testing methodologies
+Proposed a solution for the incorrect tagging of Junits as Component testing at the Line of Business (LoB) level. This solution will help remediate the issue teams across SPG.
