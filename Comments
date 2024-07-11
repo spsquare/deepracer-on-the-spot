@@ -1,3 +1,5 @@
-Investigated the production onboarding approval process through collaboration with the API onboarding team.
-Identified the need for a SNOW request creation.
-Got an oppurtunity to create and implement the SNOW request.
+Spearheaded the successful migration of the Deluxe check order API from DigVal to SAML, enhancing security and streamlining authentication. This migration involved significant changes on both the CA and DCO sides.
+Managed the transition from DigVal's SOAP protocol to SAML's RESTful API on the CA side.
+Proactively identified and addressed potential cross-impacts arising from the migration.
+Comprehensively executed integration testing to ensure seamless functionality after the migration.
+Developed a comprehensive deployment plan with minimal downtime considerations. Implemented a robust kill switch mechanism for the CA changes to facilitate a smooth rollback if necessary.
