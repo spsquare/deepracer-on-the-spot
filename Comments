@@ -1,3 +1,8 @@
 Developed UI automation scripts using Selenium to streamline testing of the Deluxe UI.
 Evaluated the use of Sauce Labs for Jules integration through a proof-of-concept (POC). While Sauce Labs demonstrated functionality as expected in UAT, it is not suitable for production use.
 Proactively explored alternative solutions: Identified Jules headless mode as a viable option for production-ready integration with the automation scripts.
+
+
+
+Automated API health checks for the deployed application. This involved creating automated scripts using Postman to call the Deluxe microservice API and seven other backend APIs. This automation improves efficiency and reduces the risk of regressions, ensuring a smoother deployment process.
+Integrated the automated API tests into the Jules pipeline for post-deployment execution. This ensures that critical API functionality is thoroughly validated before the application goes live to production, enhancing reliability and user experience.
