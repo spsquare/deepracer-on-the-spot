@@ -1,2 +1,0 @@
-Enhanced deployment safety and facilitated smooth rollbacks by implementing multiple kill switches using SplitIO for the CA.
-Leveraged SplitIO's feature flag functionality to accommodate last-minute requests for controlled rollouts
