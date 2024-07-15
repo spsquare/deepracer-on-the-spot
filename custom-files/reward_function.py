@@ -1,5 +1,5 @@
 import math
-import numpy as np
+
 def angle_between_lines(x1, y1, x2, y2, x3, y3, x4, y4):
     dx1 = x2 - x1
     dy1 = y2 - y1
@@ -16,41 +16,168 @@ def reward_function(params):
     if params['is_offtrack'] or params['is_crashed']:
         return 1e-9
     waypoints = params['waypoints']
+    steps=params['steps']
+    progress = params['progress']
     closest_waypoints = params['closest_waypoints']
-    x,y=params['x'],params['y']
-    track=np.array([( 0.14622438 ,-3.31815918),( 0.38988261 ,-3.4678667 ), ( 0.63395068 ,-3.6170706 ), ( 0.87864324 ,-3.76564377), ( 1.12415733 ,-3.91339365), ( 1.3706657  ,-4.06005275), ( 1.6183114  ,-4.2052748 ), ( 1.86720415 ,-4.34863388), ( 2.11741758 ,-4.48963879), ( 2.3689896  ,-4.62773781), ( 2.62192024 ,-4.76237489), ( 2.87617863 ,-4.89295949), ( 3.13169385 ,-5.01905479), ( 3.38838219 ,-5.14010716), ( 3.64610012 ,-5.25619443), ( 3.90475495 ,-5.36655107), ( 4.16408536 ,-5.47294866), ( 4.42414112 ,-5.57254745), ( 4.68430244 ,-5.67284004), ( 4.94532462 ,-5.76102366), ( 5.20495513 ,-5.8716928 ), ( 5.46740313 ,-5.92991187), ( 5.72799401 ,-5.94635085), ( 5.98225598 ,-5.91112827), ( 6.2279588  ,-5.83729285), ( 6.45982753 ,-5.72117252), ( 6.67697291 ,-5.57365715), ( 6.88168731 ,-5.40666099), ( 7.07754216 ,-5.22706011), ( 7.24982337 ,-5.01939325), ( 7.42103271 ,-4.81448857), ( 7.58094733 ,-4.59965658), ( 7.72934205 ,-4.37781262), ( 7.86141078 ,-4.14563716), ( 7.99388943 ,-3.91614171), ( 8.11468368 ,-3.67995898), ( 8.22503548 ,-3.43872334), ( 8.32474155 ,-3.19222842), ( 8.42364206 ,-2.94365973), ( 8.51356731 ,-2.68975879), ( 8.58054889 ,-2.43049924), ( 8.64552622 ,-2.16898227), ( 8.6866444  ,-1.90536776), ( 8.70981141 ,-1.64189228), ( 8.70643293 ,-1.38023713), ( 8.65324988 ,-1.12841213), ( 8.53517929 ,-0.89748675), ( 8.37529261 ,-0.68660358), ( 8.20761797 ,-0.48050122), ( 8.04317719 ,-0.27172676), ( 7.87692451 ,-0.06384223), ( 7.7104951  , 0.14422119), ( 7.54352233 , 0.35205811), ( 7.37534788 , 0.55914998), ( 7.20820065 , 0.76688029), ( 7.03730331 , 0.97200301), ( 6.87329056 , 1.18136117), ( 6.69737049 , 1.38242345), ( 6.54361581 , 1.59834855), ( 6.46050767 , 1.84637737), ( 6.41646458 , 2.10412325), ( 6.35238577 , 2.3559739 ), ( 6.29682362 , 2.60931136), ( 6.23726068 , 2.86100338), ( 6.17993149 , 3.112442  ), ( 6.12122815 , 3.36284668), ( 6.06386815 , 3.61268881), ( 6.00476675 , 3.86165256), ( 5.95206414 , 4.11203734), ( 5.88721833 , 4.35791458), ( 5.77506924 , 4.56900561), ( 5.63834643 , 4.75522459), ( 5.47425056 , 4.90757429), ( 5.286611   , 5.01672911), ( 5.07511807 , 5.05872692), ( 4.85811648 , 5.02952689), ( 4.64324375 , 4.95506111), ( 4.44098468 , 4.82718232), ( 4.24573055 , 4.68439698), ( 4.06285013 , 4.51681502), ( 3.887483   , 4.33908762), ( 3.721916   , 4.14964009), ( 3.56938341 , 3.94759496), ( 3.42299431 , 3.74138731), ( 3.28247027 , 3.53094569), ( 3.15370318 , 3.31340257), ( 3.03922229 , 3.08988545), ( 2.9387694  , 2.86085758), ( 2.85317166 , 2.62830598), ( 2.82986109 , 2.38629303), ( 2.9258002  , 2.1544641 ), ( 3.05834827 , 1.93534007), ( 3.17263183 , 1.70917446), ( 3.29673508 , 1.48614087), ( 3.4157433  , 1.26117479), ( 3.537662   , 1.03710543), ( 3.65711786 , 0.81257368), ( 3.77879767 , 0.58865838), ( 3.89617981 , 0.36451885), ( 4.02071988 , 0.14151706), ( 4.13068418 ,-0.08272557), ( 4.26906546 ,-0.30358988), ( 4.34820627 ,-0.53009732), ( 4.34948554 ,-0.74584849), ( 4.29310277 ,-0.94259806), ( 4.17723936 ,-1.10658391), ( 4.01337461 ,-1.2276788 ), ( 3.80873256 ,-1.29293287), ( 3.57937681 ,-1.30325943), ( 3.33668871 ,-1.2680573 ), ( 3.08628712 ,-1.18338592), ( 2.8355394  ,-1.07265444), ( 2.58521572 ,-0.97190486), ( 2.33507603 ,-0.86211399), ( 2.08531655 ,-0.75124247), ( 1.83601175 ,-0.63414595), ( 1.58740172 ,-0.51236013), ( 1.33974073 ,-0.38442039), ( 1.0933832  ,-0.25058862), ( 0.84873811 ,-0.1105716 ), ( 0.60628239 , 0.03544347), ( 0.36653758 , 0.1873162 ), ( 0.13006048 , 0.34476673), (-0.10258773 , 0.50750092), (-0.33085727 , 0.67519478), (-0.55426049 , 0.84752096), (-0.77238918 , 1.02415439), (-0.98496736 , 1.20477042), (-1.19192506 , 1.38903172), (-1.39325956 , 1.57662209), (-1.58963791 , 1.76709606), (-1.7808405  , 1.96026292), (-1.96999952 , 2.15512004), (-2.15304576 , 2.35250312), (-2.34410365 , 2.54865442), (-2.51164972 , 2.75109112), (-2.63717313 , 2.96310557), (-2.65766468 , 3.18001947), (-2.58270461 , 3.38327173), (-2.42366501 , 3.54945225), (-2.28983595 , 3.72470365), (-2.14371276 , 3.89528622), (-2.00321562 , 4.06652299), (-1.8595521  , 4.23759954), (-1.71959533 , 4.40650956), (-1.57487236 , 4.57891067), (-1.43947145 , 4.74255373), (-1.28660596 , 4.92249954), (-1.26947069 , 5.0843241 ), (-1.22409342 , 5.26909636), (-1.22615558 , 5.45165133), (-1.29142304 , 5.63161344), (-1.44771991 , 5.77369328), (-1.66872982 , 5.86647516), (-1.91034486 , 5.93980886), (-2.18224668 , 5.97700632), (-2.44016366 , 6.02839546), (-2.70566672 , 6.06866493), (-2.96973992 , 6.10771025), (-3.23701349 , 6.13947159), (-3.50568067 , 6.16532089), (-3.77656736 , 6.18346743), (-4.04898941 , 6.19382912), (-4.3227895  , 6.19570879), (-4.59738669 , 6.18890615), (-4.87232553 , 6.1732743 ), (-5.14700359 , 6.14880131), (-5.42107357 , 6.11594369), (-5.6938807  , 6.07473422), (-5.96573366 , 6.02685119), (-6.23536636 , 5.9712326 ), (-6.50515606 , 5.91307858), (-6.77489644 , 5.85367429), (-7.04107984 , 5.78585977), (-7.30103226 , 5.70657796), (-7.52970375 , 5.57955581), (-7.70630404 , 5.39014615), (-7.85373275 , 5.17611602), (-7.99038062 , 4.95297732), (-8.10861012 , 4.71813661), (-8.21383862 , 4.4771321 ), (-8.31869368 , 4.23641044), (-8.39982521 , 3.98687777), (-8.48902177 , 3.73970375), (-8.56056139 , 3.48713753), (-8.61953877 , 3.23244907), (-8.67206969 , 2.97583806), (-8.7007137  , 2.71863298), (-8.71070475 , 2.46335015), (-8.6997056  , 2.21028346), (-8.6447162  , 1.97075193), (-8.53423753 , 1.75225688), (-8.32883649 , 1.59369723), (-8.09031533 , 1.46396118), (-7.8559427  , 1.32859891), (-7.61664649 , 1.19577882), (-7.37649474 , 1.06166814), (-7.13384497 , 0.92764987), (-6.88918514 , 0.79312648), (-6.6420397  , 0.65845724), (-6.39270289 , 0.52330358), (-6.1412194  , 0.387606  ), (-5.88791004 , 0.25108   ), (-5.63304645 , 0.11353209), (-5.3769934  ,-0.0252785 ), (-5.120091   ,-0.16552581), (-4.86268537 ,-0.30734988), (-4.60508687 ,-0.4508191 ), (-4.3475761  ,-0.59594099), (-4.09039221 ,-0.74265643), (-3.83373727 ,-0.89085082), (-3.57777679 ,-1.04036229), (-3.3226449  ,-1.19099537), (-3.06844799 ,-1.34253366), (-2.81526836 ,-1.49475321), (-2.56316621 ,-1.64743423), (-2.31218021 ,-1.80037139), (-2.06232657 ,-1.95338199), (-1.81359711 ,-2.1063118 ), (-1.56595674 ,-2.25903849), (-1.31934107 ,-2.41147263), (-1.07365482 ,-2.56355608), (-0.82877149 ,-2.71525797), (-0.58453478 ,-2.86656817), (-0.34076186 ,-3.01748848), (-0.09724847 ,-3.16802173)])
-
+    straight_waypoints = [149,150,151,152,153,154]
+    left_waypoints=[9,10,11,12,13,14,15,16,17,18,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,94,95,96,97,98,99,100,101,102,103,104,105,106,130,131,132,133,134,135,136,137]
+    right_waypoints=[65,66,67,68,69,70,71,72,73,74,75,76,77,78,79]
+    not_very_right_waypoints=[63,64,80,81,82]
+    not_very_left=[5,6,7,8,19,20,21,22,31,32,33,34,54,55,91,92,93,107,108,109,110,127,128,129,138,139,140]
+    basic_left=[1,2,3,4,23,24,25,26,27,28,29,30,56,57,58,59,87,88,89,90,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,141,142,143,144,145,146,147,148,149,150,151,152,153,154]
+    basic_right=[60,61,62,83,84,85,86]
+    curve_points= left_waypoints + right_waypoints
     # Calculate the direction of the center line based on the closest waypoints
     waypoints_length= len(waypoints)
-    track_length = len(track)
     prev = int(closest_waypoints[0])
     next = int(closest_waypoints[1])
-    next_point = track[next%track_length]
     next_point_1 = waypoints[next]
     next_point_2 = waypoints[(next+1)%waypoints_length]
     next_point_3 = waypoints[(next+2)%waypoints_length]
     next_point_4 = waypoints[(next+3)%waypoints_length]
-    next_point_5 = waypoints[(next+4)%waypoints_length]
-    next_point_6 = waypoints[(next+5)%waypoints_length]
     prev_point = waypoints[prev]
     prev_point_2 = waypoints[(prev-1+waypoints_length)%waypoints_length]
 
+    # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
+    track_direction = math.atan2(next_point_1[1] - prev_point[1], next_point_1[0] - prev_point[0])
+    # Convert to degree
+    track_direction = math.degrees(track_direction)
+
+    # Calculate the difference between the track direction and the heading direction of the car
+    straight_direction_diff = abs(track_direction - params['heading']-params['steering_angle'])
+    direction_diff = abs(track_direction - params['heading'])
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
+
+    if straight_direction_diff>180:
+        straight_direction_diff= 360-straight_direction_diff
+
     angle_f= angle_between_lines(next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1],next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1])
-    angle_f2= angle_between_lines(next_point_3[0],next_point_3[1],next_point_4[0],next_point_4[1],next_point_5[0],next_point_5[1],next_point_6[0],next_point_6[1])
     angle_b= angle_between_lines(prev_point_2[0],prev_point_2[1],prev_point[0],prev_point[1],next_point_1[0],next_point_1[1],next_point_2[0],next_point_2[1])
-    total_angle = (angle_f+angle_b+angle_f2)/3
+    reward = 1e-9
+    total_angle = (angle_f+angle_b)/2
     if total_angle >90:
         total_angle-=180
     elif total_angle <-90:
         total_angle+=180
-    if abs(total_angle)<=5:
-        total_angle=0
-    distance_to_next_waypoint = math.sqrt((x - next_point[0])**2 + (y - next_point[1])**2)
-    reward_dis = 100/(1+100*distance_to_next_waypoint)
-    opt_speed = 4*math.cos(math.pi*abs(total_angle/80))
-    opt_speed= min(1.4,opt_speed)
-    if abs(total_angle)>=30:
-        opt_speed=1.4
-    reward_speed = 50/(1+10*abs(opt_speed-params['speed']))
+    if total_angle >30:
+        total_angle=30
+    elif total_angle <-30:
+        total_angle=-30
+    if next ==1 or prev==1 or (next+1)%waypoints_length ==1 or (next+2)%waypoints_length ==1 or (next+3)%waypoints_length ==1 or (next+4)%waypoints_length ==1 or (next+5)%waypoints_length ==1 or (next+6)%waypoints_length ==1 or (next+7)%waypoints_length ==1 or (prev -1 +waypoints_length)%waypoints_length ==1:
+        total_angle = 0
+    steering_reward=1e-4
+    if next not in curve_points:
+        steering_reward = 100/(1+abs(straight_direction_diff - total_angle))
+    else:
+        steering_reward = 100/(1+abs(params['steering_angle']-total_angle))
+    if params['steps'] > 0:
+        progress_reward =(params['progress'])/(params['steps'])+ params['progress']//2
+        reward += progress_reward
+    else:
+        return 1e-9
+    reward=reward+ steering_reward
+    if direction_diff <=10.0:
+        reward+=10.0
+    if next in straight_waypoints:
+        if params['speed'] >=2.8:
+            reward+=5
+        if params['speed'] >=3:
+            reward+=25
+        if params['speed']>=3.2:
+            reward+=20
+        if params['speed'] >=3.4:
+            reward+=20
+        if params['speed'] >=3.7:
+            reward+=50
+        if params['speed'] >=4:
+            reward+=80
+        if params['speed'] >=4.2:
+            reward+=80
+        if params['speed'] >=4.4:
+            reward+=80
+    elif next not in curve_points:
+        if params['speed'] >=2.0:
+            reward+=10
+        if params['speed'] >=2.2:
+            reward+=20
+        if params['speed'] >=2.4:
+            reward+=20
+        if params['speed'] >=2.6:
+            reward+=20
+        if params['speed'] >=2.8:
+            reward+=20
+        if params['speed'] >=3.0:
+            reward+=30
+        if params['speed'] >=3.2:
+            reward+=30
+    else:
+        opt_speed= 5*math.tanh(8/(1+abs(total_angle)))
+        opt_speed=max(1.4,opt_speed)
+        reward+=(5-abs(params['speed']-opt_speed))**2
 
-    return float(reward_dis+reward_speed+params['progress'])
+
+    if next in straight_waypoints:
+
+        if params['distance_from_center']==0:
+            reward=reward+5*(params['speed']**2)
+        elif params['distance_from_center']<=0.1*params['track_width']:
+            reward+=3*(params['speed']**2)
+
+    if next in left_waypoints and params['is_left_of_center']:
+        reward+=60.0
+        if params['distance_from_center']>=0.3*params['track_width']:
+           reward+=50
+        elif params['distance_from_center']>=0.2*params['track_width']:
+           reward+=30
+        elif  params['distance_from_center']>=0.1*params['track_width']:
+            reward+=10
+    if next in right_waypoints and not params['is_left_of_center']:
+        reward+=60.0
+        if params['distance_from_center']>=0.3*params['track_width']:
+           reward+=50
+        elif params['distance_from_center']>=0.2*params['track_width']:
+           reward+=30
+        elif  params['distance_from_center']>=0.1*params['track_width']:
+            reward+=10 
+    if next in not_very_right_waypoints and not params['is_left_of_center']:
+        reward+=60.0
+        if params['distance_from_center']>=0.2*params['track_width']:
+           reward+=50
+    if next in not_very_left and params['is_left_of_center']:
+        reward+=60.0
+        if  params['distance_from_center']>=0.2*params['track_width']:
+            reward+=50
+    if next in basic_left:
+        if params['is_left_of_center'] or params['distance_from_center']==0:
+            reward+=100
+    if next in basic_right:
+        if not params['is_left_of_center'] or params['distance_from_center']==0:
+            reward+=100
+    if progress ==100:
+        if steps <=270:
+            reward+=2000
+        if steps <=250:
+            reward+=3500
+        if steps <=230:
+            reward+=1500
+        if steps <=210:
+            reward+=1500
+        if steps <=190:
+            reward+=1000
+        if steps <=170:
+            reward+=500
+    threshold_1=210
+    threshold_2=240
+    threshold_3=270
+    steps_t1= (threshold_1*progress)/100
+    steps_t2= (threshold_2*progress)/100
+    steps_t3= (threshold_3*progress)/100
+    if steps>=5 and steps%30==0:
+        if steps<= steps_t3:
+            reward+=500
+        if steps<= steps_t2:
+            reward+=400
+        if steps<= steps_t1:
+            reward+=600
+    return float(reward)
